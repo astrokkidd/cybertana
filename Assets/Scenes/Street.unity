@@ -123,6 +123,25 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &17970740 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1378922297957006227, guid: 36d5e20336a328a4cb671e7d83edbaa7, type: 3}
+  m_PrefabInstance: {fileID: 419559596}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &17970742
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 17970740}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -8634060567236447461, guid: 36d5e20336a328a4cb671e7d83edbaa7, type: 3}
 --- !u!1 &68034398 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6479137908180158667, guid: 36d5e20336a328a4cb671e7d83edbaa7, type: 3}
@@ -388,6 +407,14 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[1]
       value: 
       objectReference: {fileID: 2100000, guid: a7e9dc56a4c377743b91f72aeb3522fa, type: 2}
+    - target: {fileID: 1378922297957006227, guid: 36d5e20336a328a4cb671e7d83edbaa7, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 1378922297957006227, guid: 36d5e20336a328a4cb671e7d83edbaa7, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1848468651950252371, guid: 36d5e20336a328a4cb671e7d83edbaa7, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
