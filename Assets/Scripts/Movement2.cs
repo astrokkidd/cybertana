@@ -14,6 +14,7 @@ public class Movement2 : MonoBehaviour
     [SerializeField] private bool canSprint = true;
     [SerializeField] private bool canJump = true;
     [SerializeField] private bool canCrouch = true;
+    [SerializeField] private bool canSlide = true;
 
     [Header("Controls")]
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftControl;
@@ -87,8 +88,9 @@ public class Movement2 : MonoBehaviour
 
             if (canCrouch)
                 HandleCrouching();
-
-            HandleSliding();
+            
+            if (canSlide)
+                HandleSliding();
 
             ApplyFinalMovements();
         }
@@ -168,8 +170,10 @@ public class Movement2 : MonoBehaviour
 
     private void HandleSliding() {
         if (Input.GetButtonDown("Crouch") && isSprinting) {
-            isSprinting = false;
-            isSliding = true;
+            if (CharacterController.isGrounded) {
+                isSprinting = false;
+                isSliding = true;
+            }
             StartCoroutine(SpeedDown());
         }
     }
