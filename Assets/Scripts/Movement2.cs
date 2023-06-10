@@ -8,7 +8,7 @@ public class Movement2 : MonoBehaviour
     public bool canMove { get; private set; } = true;
     private bool isSprinting;
     private bool shouldJump => Input.GetKeyDown(jumpKey);
-    private bool shouldCrouch => Input.GetKeyDown(crouchKey) && !duringCrouchAnimation && CharacterController.isGrounded;
+    private bool shouldCrouch = false;
 
     [Header("Functional Options")]
     [SerializeField] private bool canSprint = true;
@@ -51,6 +51,7 @@ public class Movement2 : MonoBehaviour
 
     [Header("Sliding Parameters")]
     [SerializeField] private float timeToSlide = 2.0f;
+    [SerializeField] private bool shouldSlide = false;
     private bool isSliding;
     private bool duringSlowDown;
 
@@ -148,6 +149,8 @@ public class Movement2 : MonoBehaviour
     }
 
     private void HandleJumping() {
+
+        
         
         if (shouldJump) {
             if (jumpsCompleted < jumpsAllowed) {
@@ -161,20 +164,31 @@ public class Movement2 : MonoBehaviour
     }
 
     private void HandleCrouching() {
-        if (shouldCrouch) 
-            StartCoroutine(CrouchStand());
+        if (Input.GetKeyDown(crouchKey) && !duringCrouchAnimation)
+            shouldCrouch = true;
+
+        if (shouldCrouch) {
+            if (CharacterController.isGrounded) {
+                StartCoroutine(CrouchStand());
+                shouldCrouch = false;
+            }
+        }
 
         if (isCrouching && (Input.GetButtonDown("Jump") || (Input.GetButtonDown("Sprint") || sprintButtonPressed == 1f)))
             StartCoroutine(CrouchStand());
     }
 
     private void HandleSliding() {
-        if (Input.GetButtonDown("Crouch") && isSprinting) {
+        if (Input.GetButtonDown("Crouch") && isSprinting) 
+            shouldSlide = true;
+
+        if (shouldSlide) {
             if (CharacterController.isGrounded) {
                 isSprinting = false;
                 isSliding = true;
+                StartCoroutine(SpeedDown());
+                shouldSlide = false;
             }
-            StartCoroutine(SpeedDown());
         }
     }
     
