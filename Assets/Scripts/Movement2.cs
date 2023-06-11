@@ -148,10 +148,7 @@ public class Movement2 : MonoBehaviour
         }
     }
 
-    private void HandleJumping() {
-
-        
-        
+    private void HandleJumping() {        
         if (shouldJump) {
             if (jumpsCompleted < jumpsAllowed) {
                 moveDirection.y = jumpForce;
@@ -193,7 +190,7 @@ public class Movement2 : MonoBehaviour
     }
     
     private void ApplyFinalMovements() {
-        if (!CharacterController.isGrounded)
+        if (!CharacterController.isGrounded) 
             moveDirection.y -= gravity * Time.deltaTime;
 
         CharacterController.Move(moveDirection * Time.deltaTime);
