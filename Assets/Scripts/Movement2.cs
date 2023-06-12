@@ -26,6 +26,7 @@ public class Movement2 : MonoBehaviour
     [SerializeField] private float currentSpeed = 0.0f;
     [SerializeField] private float walkSpeed = 8.0f;
     [SerializeField] private float sprintSpeed = 12.0f;
+    [SerializeField] private float boostSpeed = 18.0f;
     [SerializeField] private float crouchSpeed = 4.0f;
     private float sprintButtonPressed = 0f;
 
@@ -51,7 +52,6 @@ public class Movement2 : MonoBehaviour
     private bool duringCrouchAnimation;
 
     [Header("Sliding Parameters")]
-    [SerializeField] private float boostSpeed = 16.0f;
     [SerializeField] private float timeToSlide = 2.0f;
     [SerializeField] private bool shouldSlide = false;
     private bool isSliding;
@@ -109,8 +109,8 @@ public class Movement2 : MonoBehaviour
     }
 
     private void HandleMovementInput(float x, float z) {
-        if (!isSliding || !isBoosting) {
-            currentSpeed = isCrouching ? crouchSpeed : isSprinting ? sprintSpeed : walkSpeed;
+        if (!isSliding) {
+            currentSpeed = isBoosting ? boostSpeed : isCrouching ? crouchSpeed : isSprinting ? sprintSpeed : walkSpeed;
         }
 
 
@@ -201,10 +201,7 @@ public class Movement2 : MonoBehaviour
         }
     }
 
-    private void HandleBoosting() {
-        if (isSliding && Input.GetButtonDown("Jump"))
-            shouldBoost = true;
-        
+    private void HandleBoosting() {        
         if (shouldBoost) {
             isBoosting = true;
             currentSpeed = boostSpeed;
@@ -258,9 +255,16 @@ public class Movement2 : MonoBehaviour
             currentSpeed = Mathf.Lerp(currSpeed, targetSpeed, timeElapsed / timeToSlide);
             timeElapsed += Time.deltaTime;
 
-            if (isSprinting || isBoosting) {
+            if (isSprinting) {
                 isSliding = false;
                 duringSlide = false;
+                yield break;
+            }
+
+            if (Input.GetButtonDown("Jump")) {
+                isSliding = false;
+                duringSlide = false;
+                shouldBoost = true;
                 yield break;
             }
 
@@ -284,7 +288,8 @@ public class Movement2 : MonoBehaviour
 
             yield return null;
         }
-
+        
+        isSprinting = true;
         isBoosting = false;
         duringBoost = false;
     }
