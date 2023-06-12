@@ -15,6 +15,7 @@ public class Movement2 : MonoBehaviour
     [SerializeField] private bool canJump = true;
     [SerializeField] private bool canCrouch = true;
     [SerializeField] private bool canSlide = true;
+    [SerializeField] private bool canBoost = true;
 
     [Header("Controls")]
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftControl;
@@ -23,9 +24,9 @@ public class Movement2 : MonoBehaviour
 
     [Header("Movement Parameters")]
     [SerializeField] private float currentSpeed = 0.0f;
-    [SerializeField] private float walkSpeed = 6.0f;
+    [SerializeField] private float walkSpeed = 8.0f;
     [SerializeField] private float sprintSpeed = 12.0f;
-    [SerializeField] private float crouchSpeed = 3.0f;
+    [SerializeField] private float crouchSpeed = 4.0f;
     private float sprintButtonPressed = 0f;
 
     [Header("Look Parameters")]
@@ -50,10 +51,17 @@ public class Movement2 : MonoBehaviour
     private bool duringCrouchAnimation;
 
     [Header("Sliding Parameters")]
+    [SerializeField] private float boostSpeed = 16.0f;
     [SerializeField] private float timeToSlide = 2.0f;
     [SerializeField] private bool shouldSlide = false;
     private bool isSliding;
-    private bool duringSlowDown;
+    private bool duringSlide;
+
+    [Header("Boost Parameters")]
+    [SerializeField] private float timeToBoost = 3.0f;
+    [SerializeField] private bool shouldBoost = false;
+    private bool isBoosting;
+    private bool duringBoost;
 
 
     private Camera playerCamera;
@@ -93,12 +101,15 @@ public class Movement2 : MonoBehaviour
             if (canSlide)
                 HandleSliding();
 
+            if (canBoost)
+                HandleBoosting();
+
             ApplyFinalMovements();
         }
     }
 
     private void HandleMovementInput(float x, float z) {
-        if (!isSliding) {
+        if (!isSliding || !isBoosting) {
             currentSpeed = isCrouching ? crouchSpeed : isSprinting ? sprintSpeed : walkSpeed;
         }
 
@@ -144,6 +155,7 @@ public class Movement2 : MonoBehaviour
         if ((Mathf.Abs(x) <= 0.1f && Mathf.Abs(z) <= 0.1f) &&
             (!Input.GetButton("Horizontal") && !Input.GetButton("Vertical"))) { // If not moving, stop sprinting
             isSprinting = false;
+            isBoosting = false;
             sprintButtonPressed = 0f;
         }
     }
@@ -183,9 +195,21 @@ public class Movement2 : MonoBehaviour
             if (CharacterController.isGrounded) {
                 isSprinting = false;
                 isSliding = true;
-                StartCoroutine(SpeedDown());
+                StartCoroutine(Slide());
                 shouldSlide = false;
             }
+        }
+    }
+
+    private void HandleBoosting() {
+        if (isSliding && Input.GetButtonDown("Jump"))
+            shouldBoost = true;
+        
+        if (shouldBoost) {
+            isBoosting = true;
+            currentSpeed = boostSpeed;
+            StartCoroutine(Boost());
+            shouldBoost = false;
         }
     }
     
@@ -223,8 +247,8 @@ public class Movement2 : MonoBehaviour
         duringCrouchAnimation = false;
     }
 
-    private IEnumerator SpeedDown() {  
-        duringSlowDown = true;
+    private IEnumerator Slide() {  
+        duringSlide = true;
 
         float timeElapsed = 0;
         float targetSpeed = crouchSpeed;
@@ -234,9 +258,9 @@ public class Movement2 : MonoBehaviour
             currentSpeed = Mathf.Lerp(currSpeed, targetSpeed, timeElapsed / timeToSlide);
             timeElapsed += Time.deltaTime;
 
-            if (isSprinting) {
+            if (isSprinting || isBoosting) {
                 isSliding = false;
-                duringSlowDown = false;
+                duringSlide = false;
                 yield break;
             }
 
@@ -244,7 +268,24 @@ public class Movement2 : MonoBehaviour
         }
 
         isSliding = false;
+        duringSlide = false;
+    }
 
-        duringSlowDown = false;
+    private IEnumerator Boost() {  
+        duringBoost = true;
+
+        float timeElapsed = 0;
+        float targetSpeed = sprintSpeed;
+        float currSpeed = currentSpeed;
+
+        while(timeElapsed < timeToBoost) {
+            currentSpeed = Mathf.Lerp(currSpeed, targetSpeed, timeElapsed / timeToBoost);
+            timeElapsed += Time.deltaTime;
+
+            yield return null;
+        }
+
+        isBoosting = false;
+        duringBoost = false;
     }
 }
