@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7462433091397069428}
   - component: {fileID: 4889616808531568806}
   - component: {fileID: 6359116548281310137}
-  - component: {fileID: 1845012217733271515}
+  - component: {fileID: 4366748394878004203}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -34,7 +34,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5678782943909173397}
-  - {fileID: 1243436532149113121}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -120,7 +119,7 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &1845012217733271515
+--- !u!114 &4366748394878004203
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -129,53 +128,39 @@ MonoBehaviour:
   m_GameObject: {fileID: 520975590910321353}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f3475b68d21aa5e41af20bd630ff2cbe, type: 3}
+  m_Script: {fileID: 11500000, guid: 20fe1d7cd4b3c874ab4aab268337f8a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  controller: {fileID: 0}
-  gravity: -19.62
-  speed: 6
-  walkSpeed: 6
+  canSprint: 1
+  canJump: 1
+  canCrouch: 1
+  canSlide: 1
+  canBoost: 1
+  sprintKey: 306
+  jumpKey: 32
+  crouchKey: 304
+  currentSpeed: 0
+  walkSpeed: 8
   sprintSpeed: 12
-  jumpHeight: 1.5
-  crouchSpeed: 3
-  crouchAnimationLength: 1
-  groundCheck: {fileID: 1243436532149113121}
-  groundMask:
-    serializedVersion: 2
-    m_Bits: 64
-  groundDistance: 0.4
---- !u!1 &2248040426364316549
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1243436532149113121}
-  m_Layer: 0
-  m_Name: groundCheck
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1243436532149113121
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2248040426364316549}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.96, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 4768677168134590160}
-  m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  boostSpeed: 18
+  crouchSpeed: 4
+  lookSpeedX: 2
+  lookSpeedY: 2
+  upperLookLimit: 80
+  lowerLookLimit: 80
+  jumpForce: 10
+  jumpsAllowed: 2
+  gravity: 30
+  jumpsCompleted: 1
+  crouchHeight: 0.5
+  standingHeight: 2
+  timeToCrouch: 0.25
+  crouchingCenter: {x: 0, y: 0.5, z: 0}
+  standingCenter: {x: 0, y: 0, z: 0}
+  timeToSlide: 2
+  shouldSlide: 0
+  timeToBoost: 3
+  shouldBoost: 0
 --- !u!1 &7841217705947203461
 GameObject:
   m_ObjectHideFlags: 0
@@ -187,7 +172,6 @@ GameObject:
   - component: {fileID: 5678782943909173397}
   - component: {fileID: 6971281237081785444}
   - component: {fileID: 3700398412724209230}
-  - component: {fileID: 2507303859730129802}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: Untagged
@@ -261,17 +245,3 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7841217705947203461}
   m_Enabled: 1
---- !u!114 &2507303859730129802
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7841217705947203461}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1ab260cae3aa1094797ee6603ff46a98, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mouseSensitivity: 100
-  playerBody: {fileID: 4768677168134590160}

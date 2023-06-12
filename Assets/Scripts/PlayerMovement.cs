@@ -4,196 +4,300 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public CharacterController controller;
 
-    public float gravity = -9.81f;
-    public float speed = 6f;
-    public float crouchSpeed = 3f;
-    public float walkSpeed = 6f;
-    public float sprintSpeed = 12f;
-    public float boostSpeed = 15f;
-    public float slideLength = 3f;
-    public float jumpHeight = 1f;
-    public float crouchAnimationLength = 1f;
-
-    public Transform groundCheck;
-    public LayerMask groundMask;
-    public float groundDistance = 0.4f;
-
-    private bool isGrounded;
-    
+    public bool canMove { get; private set; } = true;
     private bool isSprinting;
-    private bool isCrouching;
-    private bool isSliding;
-    private bool isLerpingSpeed;
-    private bool isLerpingCrouch;
-    private float crouchTimer = 0f;
-    private float slideTimer = 0f;
-    private float speedDown = 0f;
-    private float sprintButtonPressed = 0f;
-    private float numJumps = 0f;
-    private float crouchSmoothness = 5f;
+    private bool shouldJump => Input.GetKeyDown(jumpKey);
+    private bool shouldCrouch = false;
 
-    Vector3 velocity;
+    [Header("Functional Options")]
+    [SerializeField] private bool canSprint = true;
+    [SerializeField] private bool canJump = true;
+    [SerializeField] private bool canCrouch = true;
+    [SerializeField] private bool canSlide = true;
+    [SerializeField] private bool canBoost = true;
+
+    [Header("Controls")]
+    [SerializeField] private KeyCode sprintKey = KeyCode.LeftControl;
+    [SerializeField] private KeyCode jumpKey = KeyCode.Space;
+    [SerializeField] private KeyCode crouchKey = KeyCode.LeftShift;
+
+    [Header("Movement Parameters")]
+    [SerializeField] private float currentSpeed = 0.0f;
+    [SerializeField] private float walkSpeed = 8.0f;
+    [SerializeField] private float sprintSpeed = 12.0f;
+    [SerializeField] private float boostSpeed = 18.0f;
+    [SerializeField] private float crouchSpeed = 4.0f;
+    private float sprintButtonPressed = 0f;
+
+    [Header("Look Parameters")]
+    [SerializeField, Range(1, 10)] private float lookSpeedX = 2.0f;
+    [SerializeField, Range(1, 10)] private float lookSpeedY = 2.0f;
+    [SerializeField, Range(1, 180)] private float upperLookLimit = 80.0f;
+    [SerializeField, Range(1, 180)] private float lowerLookLimit = 80.0f;
+
+    [Header("Jumping Parameters")]
+    [SerializeField] private float jumpForce = 8.0f;
+    [SerializeField] private float jumpsAllowed = 2.0f;
+    [SerializeField] private float gravity = 30.0f;
+    [SerializeField] private float jumpsCompleted = 1.0f;
+
+    [Header("Crouch Parameters")]
+    [SerializeField] private float crouchHeight = 0.5f;
+    [SerializeField] private float standingHeight = 2.0f;
+    [SerializeField] private float timeToCrouch = 0.25f;
+    [SerializeField] private Vector3 crouchingCenter = new Vector3(0, 0.5f, 0);
+    [SerializeField] private Vector3 standingCenter = new Vector3(0, 0, 0);
+    private bool isCrouching;
+    private bool duringCrouchAnimation;
+
+    [Header("Sliding Parameters")]
+    [SerializeField] private float timeToSlide = 2.0f;
+    [SerializeField] private bool shouldSlide = false;
+    private bool isSliding;
+    private bool duringSlide;
+
+    [Header("Boost Parameters")]
+    [SerializeField] private float timeToBoost = 3.0f;
+    [SerializeField] private bool shouldBoost = false;
+    private bool isBoosting;
+    private bool duringBoost;
+
+
+    private Camera playerCamera;
+    private CharacterController CharacterController;
+
+    private Vector3 moveDirection;
+    private Vector2 currentInput;
+
+    private float xRotation = 0f;
+
+    void Awake()
+    {
+        playerCamera = GetComponentInChildren<Camera>();
+        CharacterController = GetComponent<CharacterController>();
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
 
     void Update()
     {
-        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
-
-        if (isGrounded && velocity.y < 0)
-            velocity.y = -2f;
-
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
-        Vector3 move = transform.right * x + transform.forward * z;
 
-        HandleSprinting(x, z);
-        HandleSliding();
-        HandleCrouching();
-        
+        if (canMove) {
+            HandleMovementInput(x, z);
+            HandleMouseLook();
 
-        controller.Move(move * speed * Time.deltaTime);
+            if (canSprint)
+                HandleSprinting(x, z);
 
-        HandleJumping();
+            if (canJump)
+                HandleJumping();
 
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+            if (canCrouch)
+                HandleCrouching();
+            
+            if (canSlide)
+                HandleSliding();
+
+            if (canBoost)
+                HandleBoosting();
+
+            ApplyFinalMovements();
+        }
+    }
+
+    private void HandleMovementInput(float x, float z) {
+        if (!isSliding) {
+            currentSpeed = isBoosting ? boostSpeed : isCrouching ? crouchSpeed : isSprinting ? sprintSpeed : walkSpeed;
+        }
+
+
+        /*currentSpeed = this switch
+        {
+            { isCrouching: true } => crouchSpeed,
+            { isSprinting: true } => sprintSpeed,
+            _ => walkSpeed,
+        };*/
+
+
+        currentInput = new Vector2(currentSpeed * z, currentSpeed * x);
+
+        float moveDirectionY = moveDirection.y;
+        moveDirection = (transform.TransformDirection(Vector3.forward) * currentInput.x) + (transform.TransformDirection(Vector3.right) * currentInput.y);
+        moveDirection.y = moveDirectionY;
+    }
+
+    private void HandleMouseLook() {
+        float MouseX = Input.GetAxis("Mouse X") * lookSpeedX;
+        float MouseY = Input.GetAxis("Mouse Y") * lookSpeedY;
+
+        xRotation -= MouseY;
+        xRotation = Mathf.Clamp(xRotation, -upperLookLimit, lowerLookLimit);
+
+        playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        transform.rotation *= Quaternion.Euler(0, MouseX, 0);
     }
 
     void HandleSprinting(float x, float z) {
-        if (Mathf.Abs(x) > 0.1f || Mathf.Abs(z) > 0.1f) { // If Left JoyStick pressed, it's pressed
-            if (Input.GetButton("JoySprint")) {
-                isSprinting = true;
-                sprintButtonPressed = 1f;
-            }
+        if (Input.GetButton("JoySprint")) { // If Left JoyStick pressed, it's pressed
+            isSprinting = true;
+            sprintButtonPressed = 1f;
         }
 
-        if ((Mathf.Abs(x) > 0.1f || Mathf.Abs(z) > 0.1f) || // L JoyStick
-            (Input.GetButton("Horizontal") || Input.GetButton("Vertical"))) { // WASD
-            if (Input.GetButtonDown("Sprint") || sprintButtonPressed == 1f) { // Sprint pressed
-                if (isGrounded) {
-                    isSprinting = true;
-                    if (isSprinting) {
-                        speed = sprintSpeed;
-                    }
-                }
+        if (Input.GetButtonDown("Sprint") || sprintButtonPressed == 1f) { // Sprint pressed
+            if (CharacterController.isGrounded) {
+                isSprinting = true;
             }
         }
 
         if ((Mathf.Abs(x) <= 0.1f && Mathf.Abs(z) <= 0.1f) &&
             (!Input.GetButton("Horizontal") && !Input.GetButton("Vertical"))) { // If not moving, stop sprinting
-            speed = walkSpeed;
             isSprinting = false;
+            isBoosting = false;
             sprintButtonPressed = 0f;
         }
     }
 
-    void HandleCrouching() {
-        if (isGrounded) {
-            if (Input.GetButtonDown("Crouch")) { // If crouch, crouch
-                isCrouching = !isCrouching;
-                crouchTimer = 0f;
-                slideTimer = 0f;
-                isLerpingCrouch = true;
-            }
+    private void HandleJumping() {  
 
-            if (isCrouching) {
-                if (Input.GetButtonDown("Sprint") || sprintButtonPressed == 1f) { //If sprint, cancel crouch
-                    isCrouching = !isCrouching;
-                    crouchTimer = 0f;
-                    isLerpingCrouch = true;
-                }
+        if (shouldJump) {
+            jumpsCompleted++;
 
-                if (Input.GetButtonDown("Jump")) { // If jump, cancel crouch
-                    
-                    controller.height = 2f;
-                    if (isSliding) {
-                        speed = boostSpeed;
-                    }
-                    isCrouching = !isCrouching;
+            
+            if (jumpsCompleted <= jumpsAllowed) {
+                if (jumpsCompleted == 1) {
+                    moveDirection.y = jumpForce + 4;
+                } else {
+                    moveDirection.y = jumpForce;
                 }
             }
         }
 
-        if (isLerpingCrouch) {
-            crouchTimer += Time.deltaTime;
-            //slideTimer += Time.deltaTime;
-            float p = crouchTimer / crouchAnimationLength;
-            p = 1f - Mathf.Pow(1f - p, crouchSmoothness);
+        if (CharacterController.isGrounded)
+            jumpsCompleted = 0f;    
+    }
 
-            if (!isSprinting) {
-                if (isCrouching) {
-                    speed = crouchSpeed;
-                    controller.height = Mathf.Lerp(controller.height, 1f, p); // Lerp down to short
-                } else {
-                    speed = walkSpeed;
-                    controller.height = Mathf.Lerp(controller.height, 2f, p); // Lerp up to tall
-                }
+    private void HandleCrouching() {
+        if (Input.GetKeyDown(crouchKey) && !duringCrouchAnimation)
+            shouldCrouch = true;
 
-                if (isCrouching) {
-                    if (!isGrounded) {
-                        controller.height = 2f;
-                    }
-                }
-
-                if (p > 1 || !isGrounded) {
-                    crouchTimer = 0f;
-                    isLerpingCrouch = false; // Reset crouch animation
-                }
+        if (shouldCrouch) {
+            if (CharacterController.isGrounded) {
+                StartCoroutine(CrouchStand());
+                shouldCrouch = false;
             }
-            else if (isSprinting) {
-                if (isCrouching) {
-                    isSliding = true;
-                    speed = sprintSpeed;
-                    if (slideTimer >= slideLength) {
-                        speed = crouchSpeed;
-                        slideTimer = 0;
-                    }
-                    controller.height = Mathf.Lerp(controller.height, 1f, p); // Lerp down w/o speed change
-                } else {
-                    //speed = walkSpeed;
-                    isSliding = false;
-                    controller.height = Mathf.Lerp(controller.height, 2f, p); // Lerp up w/o speed change
-                }
+        }
 
-                if (isCrouching) {
-                    if (!isGrounded) {
-                        controller.height = 2f;
-                    }
-                }
+        if (isCrouching && (Input.GetButtonDown("Jump") || (Input.GetButtonDown("Sprint") || sprintButtonPressed == 1f)))
+            StartCoroutine(CrouchStand());
+    }
 
-                if (p > 1 || !isGrounded) {
-                    crouchTimer = 0f;
-                    isLerpingCrouch = false; // Reset crouch animation
-                }
+    private void HandleSliding() {
+        if (Input.GetButtonDown("Crouch") && isSprinting) 
+            shouldSlide = true;
+
+        if (shouldSlide) {
+            if (CharacterController.isGrounded) {
+                isSprinting = false;
+                isSliding = true;
+                StartCoroutine(Slide());
+                shouldSlide = false;
             }
         }
     }
 
-    void HandleSliding() {
-        if (isSprinting) {
-            if (Input.GetButtonDown("Crouch")) {
-                isSliding = !isSliding;
-            }
+    private void HandleBoosting() {        
+        if (shouldBoost) {
+            isBoosting = true;
+            currentSpeed = boostSpeed;
+            StartCoroutine(Boost());
+            shouldBoost = false;
         }
+    }
+    
+    private void ApplyFinalMovements() {
+        if (!CharacterController.isGrounded) 
+            moveDirection.y -= gravity * Time.deltaTime;
 
-
+        CharacterController.Move(moveDirection * Time.deltaTime);
     }
 
-    void HandleJumping() {
-        if (Input.GetButtonDown("Jump")) {
-            if (numJumps < 2f) {
-                if (isSprinting) {
-                    if (isSliding)
-                        speed = boostSpeed;
-                }
+    private IEnumerator CrouchStand() {
+        if (isCrouching && Physics.Raycast(playerCamera.transform.position, Vector3.up, 1f))
+            yield break;
+        
+        duringCrouchAnimation = true;
 
-                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-                numJumps++;
-            }
+        float timeElapsed = 0;
+        float targetHeight = isCrouching ? standingHeight : crouchHeight;
+        float currentHeight = CharacterController.height;
+        Vector3 targetCenter = isCrouching ? standingCenter : crouchingCenter;
+        Vector3 currentCenter = CharacterController.center;
+
+        while(timeElapsed < timeToCrouch) {
+            CharacterController.height = Mathf.Lerp(currentHeight, targetHeight, timeElapsed / timeToCrouch);
+            CharacterController.center = Vector3.Lerp(currentCenter, targetCenter, timeElapsed / timeToCrouch);
+            timeElapsed += Time.deltaTime;
+            yield return null;
         }
 
-        if (isGrounded)
-            numJumps = 0f;
+        CharacterController.height = targetHeight;
+        CharacterController.center = targetCenter;
+
+        isCrouching = !isCrouching;
+
+        duringCrouchAnimation = false;
+    }
+
+    private IEnumerator Slide() {  
+        duringSlide = true;
+
+        float timeElapsed = 0;
+        float targetSpeed = crouchSpeed;
+        float currSpeed = currentSpeed;
+
+        while(timeElapsed < timeToSlide) {
+            currentSpeed = Mathf.Lerp(currSpeed, targetSpeed, timeElapsed / timeToSlide);
+            timeElapsed += Time.deltaTime;
+
+            if (isSprinting) {
+                isSliding = false;
+                duringSlide = false;
+                yield break;
+            }
+
+            if (Input.GetButtonDown("Jump")) {
+                isSliding = false;
+                duringSlide = false;
+                shouldBoost = true;
+                yield break;
+            }
+
+            yield return null;
+        }
+
+        isSliding = false;
+        duringSlide = false;
+    }
+
+    private IEnumerator Boost() {  
+        duringBoost = true;
+
+        float timeElapsed = 0;
+        float targetSpeed = sprintSpeed;
+        float currSpeed = currentSpeed;
+
+        while(timeElapsed < timeToBoost) {
+            currentSpeed = Mathf.Lerp(currSpeed, targetSpeed, timeElapsed / timeToBoost);
+            timeElapsed += Time.deltaTime;
+
+            yield return null;
+        }
+        
+        isSprinting = true;
+        isBoosting = false;
+        duringBoost = false;
     }
 }
