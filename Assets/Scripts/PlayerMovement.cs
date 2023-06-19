@@ -7,7 +7,7 @@ public class PlayerMovement : MonoBehaviour
 
     public bool canMove { get; private set; } = true;
     private bool isSprinting;
-    private bool shouldJump => Input.GetKeyDown(jumpKey);
+    private bool shouldJump => Input.GetButtonDown("Jump");
     private bool shouldCrouch = false;
 
     [Header("Functional Options")]
@@ -41,6 +41,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float jumpsAllowed = 2.0f;
     [SerializeField] private float gravity = 30.0f;
     [SerializeField] private float jumpsCompleted = 1.0f;
+    private bool hasJumped = false;
 
     [Header("Crouch Parameters")]
     [SerializeField] private float crouchHeight = 0.5f;
@@ -63,7 +64,12 @@ public class PlayerMovement : MonoBehaviour
     private bool isBoosting;
     private bool duringBoost;
 
-
+    [Header("Sound Effects")]
+    [SerializeField] private AudioSource jumpFX1;
+    [SerializeField] private AudioSource jumpFX2;
+    [SerializeField] private AudioSource slideFX;
+    [SerializeField] private AudioSource sprintFX;
+    
     private Camera playerCamera;
     private CharacterController CharacterController;
 
@@ -148,9 +154,10 @@ public class PlayerMovement : MonoBehaviour
 
         if (Input.GetButtonDown("Sprint") || sprintButtonPressed == 1f) { // Sprint pressed
             if (CharacterController.isGrounded) {
+                sprintFX.Play();
                 isSprinting = true;
             }
-        }
+        }            
 
         if ((Mathf.Abs(x) <= 0.1f && Mathf.Abs(z) <= 0.1f) &&
             (!Input.GetButton("Horizontal") && !Input.GetButton("Vertical"))) { // If not moving, stop sprinting
@@ -163,24 +170,26 @@ public class PlayerMovement : MonoBehaviour
     private void HandleJumping() {  
 
         if (shouldJump) {
-            jumpsCompleted++;
-
-            
-            if (jumpsCompleted <= jumpsAllowed) {
-                if (jumpsCompleted == 1) {
-                    moveDirection.y = jumpForce + 4;
-                } else {
+            if (jumpsCompleted < jumpsAllowed) {
+                jumpsCompleted++;
+                
+                if (jumpsCompleted == 1f) {
+                    jumpFX1.Play();
                     moveDirection.y = jumpForce;
+                } else if (jumpsCompleted == 2f) {
+                    jumpFX2.Play();
+                    moveDirection.y = jumpForce + 4;
                 }
             }
+        } else if (CharacterController.isGrounded) {
+            jumpsCompleted = 0f;
         }
 
-        if (CharacterController.isGrounded)
-            jumpsCompleted = 0f;    
+        
     }
 
     private void HandleCrouching() {
-        if (Input.GetKeyDown(crouchKey) && !duringCrouchAnimation)
+        if (Input.GetButtonDown("Crouch") && !duringCrouchAnimation)
             shouldCrouch = true;
 
         if (shouldCrouch) {
@@ -200,6 +209,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (shouldSlide) {
             if (CharacterController.isGrounded) {
+                slideFX.Play();
                 isSprinting = false;
                 isSliding = true;
                 StartCoroutine(Slide());
@@ -265,6 +275,7 @@ public class PlayerMovement : MonoBehaviour
             if (isSprinting) {
                 isSliding = false;
                 duringSlide = false;
+                slideFX.Stop();
                 yield break;
             }
 
@@ -272,6 +283,7 @@ public class PlayerMovement : MonoBehaviour
                 isSliding = false;
                 duringSlide = false;
                 shouldBoost = true;
+                slideFX.Stop();
                 yield break;
             }
 
