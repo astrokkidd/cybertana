@@ -10,12 +10,22 @@ public class PlayerMovement : MonoBehaviour
     private bool shouldJump => Input.GetButtonDown("Jump");
     private bool shouldCrouch = false;
 
+    private enum PostJumpAction
+    {
+        Crouch,
+        Sprint,
+        None
+    }
+
+    private PostJumpAction postJumpAction = PostJumpAction.None;
+
     [Header("Functional Options")]
-    [SerializeField] private bool canSprint = true;
-    [SerializeField] private bool canJump = true;
-    [SerializeField] private bool canCrouch = true;
-    [SerializeField] private bool canSlide = true;
-    [SerializeField] private bool canBoost = true;
+    [SerializeField] public bool canSprint = true;
+    [SerializeField] public bool canJump = true;
+    [SerializeField] public bool canCrouch = true;
+    [SerializeField] public bool canSlide = true;
+    [SerializeField] public bool canBoost = true;
+    [SerializeField] public bool canSwing = true;
 
     [Header("Controls")]
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftControl;
@@ -190,8 +200,10 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleCrouching() {
         if (Input.GetButtonDown("Crouch") && !duringCrouchAnimation)
+            //postJumpAction = PostJumpAction.Crouch;
             shouldCrouch = true;
-
+        
+        //postJumpAction == PostJumpAction.Crouch
         if (shouldCrouch) {
             if (CharacterController.isGrounded) {
                 StartCoroutine(CrouchStand());
