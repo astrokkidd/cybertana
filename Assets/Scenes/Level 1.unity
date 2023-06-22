@@ -221,11 +221,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 205619145}
   m_Mesh: {fileID: 7789816035261586438, guid: 11eff299dc63d6541864a9a926ff8bfc, type: 3}
---- !u!143 &903269054 stripped
-CharacterController:
-  m_CorrespondingSourceObject: {fileID: 6359116548281310137, guid: fdb9ce0fb8568954a8f501793ca0e488, type: 3}
-  m_PrefabInstance: {fileID: 2115149262}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1572237069
 GameObject:
   m_ObjectHideFlags: 0
@@ -339,7 +334,7 @@ PrefabInstance:
     - target: {fileID: 1845012217733271515, guid: fdb9ce0fb8568954a8f501793ca0e488, type: 3}
       propertyPath: controller
       value: 
-      objectReference: {fileID: 903269054}
+      objectReference: {fileID: 0}
     - target: {fileID: 1845012217733271515, guid: fdb9ce0fb8568954a8f501793ca0e488, type: 3}
       propertyPath: jumpHeight
       value: 1.5
@@ -395,6 +390,30 @@ PrefabInstance:
     - target: {fileID: 4768677168134590160, guid: fdb9ce0fb8568954a8f501793ca0e488, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6059461778179813175, guid: fdb9ce0fb8568954a8f501793ca0e488, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 45.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6059461778179813175, guid: fdb9ce0fb8568954a8f501793ca0e488, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 3.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 6059461778179813175, guid: fdb9ce0fb8568954a8f501793ca0e488, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 6059461779939049717, guid: fdb9ce0fb8568954a8f501793ca0e488, type: 3}
+      propertyPath: m_BackGroundColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6059461779939049717, guid: fdb9ce0fb8568954a8f501793ca0e488, type: 3}
+      propertyPath: m_BackGroundColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6059461779939049717, guid: fdb9ce0fb8568954a8f501793ca0e488, type: 3}
+      propertyPath: m_BackGroundColor.r
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6971281237081785444, guid: fdb9ce0fb8568954a8f501793ca0e488, type: 3}
       propertyPath: m_ClearFlags

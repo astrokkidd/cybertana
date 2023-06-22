@@ -10,14 +10,14 @@ public class PlayerMovement : MonoBehaviour
     private bool shouldJump => Input.GetButtonDown("Jump");
     private bool shouldCrouch = false;
 
-    private enum PostJumpAction
+    /*private enum PostJumpAction
     {
         Crouch,
         Sprint,
         None
-    }
+    }*/
 
-    private PostJumpAction postJumpAction = PostJumpAction.None;
+    //private PostJumpAction postJumpAction = PostJumpAction.None;
 
     [Header("Functional Options")]
     [SerializeField] public bool canSprint = true;
@@ -74,6 +74,9 @@ public class PlayerMovement : MonoBehaviour
     private bool isBoosting;
     private bool duringBoost;
 
+    //[Header("Swing Parameters")]
+    [SerializeField] private bool shouldSwing => Input.GetButtonDown("Swing");
+
     [Header("Sound Effects")]
     [SerializeField] private AudioSource jumpFX1;
     [SerializeField] private AudioSource jumpFX2;
@@ -82,6 +85,7 @@ public class PlayerMovement : MonoBehaviour
     
     private Camera playerCamera;
     private CharacterController CharacterController;
+    private Animator Animator;
 
     private Vector3 moveDirection;
     private Vector2 currentInput;
@@ -92,6 +96,7 @@ public class PlayerMovement : MonoBehaviour
     {
         playerCamera = GetComponentInChildren<Camera>();
         CharacterController = GetComponent<CharacterController>();
+        Animator = GetComponentInChildren<Animator>();
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -119,6 +124,9 @@ public class PlayerMovement : MonoBehaviour
 
             if (canBoost)
                 HandleBoosting();
+
+            if (canSwing)
+                HandleSwinging();
 
             ApplyFinalMovements();
         }
@@ -237,6 +245,11 @@ public class PlayerMovement : MonoBehaviour
             StartCoroutine(Boost());
             shouldBoost = false;
         }
+    }
+
+    private void HandleSwinging() {
+        if (shouldSwing)
+            Animator.SetTrigger("SwingAttack");
     }
     
     private void ApplyFinalMovements() {
