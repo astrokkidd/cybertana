@@ -9,6 +9,8 @@ public class PlayerMovement : MonoBehaviour
     private bool isSprinting;
     private bool shouldJump => Input.GetButtonDown("Jump");
     private bool shouldCrouch = false;
+    private bool shouldSwing => Input.GetButtonDown("Swing");
+    private bool shouldDash => Input.GetButtonDown("Dash");
 
     /*private enum PostJumpAction
     {
@@ -25,7 +27,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] public bool canCrouch = true;
     [SerializeField] public bool canSlide = true;
     [SerializeField] public bool canBoost = true;
+    [SerializeField] public bool canDash = true;
     [SerializeField] public bool canSwing = true;
+    [SerializeField] public bool canSway = true;
 
     [Header("Controls")]
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftControl;
@@ -74,8 +78,21 @@ public class PlayerMovement : MonoBehaviour
     private bool isBoosting;
     private bool duringBoost;
 
-    //[Header("Swing Parameters")]
-    [SerializeField] private bool shouldSwing => Input.GetButtonDown("Swing");
+    [Header("Dash Parameters")]
+    [SerializeField] private float dashSpeed = 30f;
+    [SerializeField] private float dashTime = 0.5f;
+
+
+    [Header("Sway Parameters")]
+    [SerializeField] private float walkSwaySpeed = 14f;
+    [SerializeField] private float walkSwayAmount = 0.5f;
+    [SerializeField] private float sprintSwaySpeed = 18f;
+    [SerializeField] private float sprintSwayAmount = 1f;
+    [SerializeField] private float crouchSwaySpeed = 14f;
+    [SerializeField] private float crouchSwayAmount = 0.25f;
+    private float defaultYPos = 0;
+    private float timer;
+
 
     [Header("Sound Effects")]
     [SerializeField] private AudioSource jumpFX1;
@@ -125,8 +142,14 @@ public class PlayerMovement : MonoBehaviour
             if (canBoost)
                 HandleBoosting();
 
+            if (canDash)
+                HandleDashing();
+
             if (canSwing)
                 HandleSwinging();
+
+            if (canSway)
+                HandleSwaying();
 
             ApplyFinalMovements();
         }
@@ -149,7 +172,9 @@ public class PlayerMovement : MonoBehaviour
         currentInput = new Vector2(currentSpeed * z, currentSpeed * x);
 
         float moveDirectionY = moveDirection.y;
-        moveDirection = (transform.TransformDirection(Vector3.forward) * currentInput.x) + (transform.TransformDirection(Vector3.right) * currentInput.y);
+        moveDirection = (transform.TransformDirection(Vector3.forward) * currentInput.x) + 
+                        (transform.TransformDirection(Vector3.right) * currentInput.y) *
+                        ((CharacterController.isGrounded) ? 1f : 0.5f);
         moveDirection.y = moveDirectionY;
     }
 
@@ -175,7 +200,7 @@ public class PlayerMovement : MonoBehaviour
                 sprintFX.Play();
                 isSprinting = true;
             }
-        }            
+        }          
 
         if ((Mathf.Abs(x) <= 0.1f && Mathf.Abs(z) <= 0.1f) &&
             (!Input.GetButton("Horizontal") && !Input.GetButton("Vertical"))) { // If not moving, stop sprinting
@@ -247,9 +272,18 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    private void HandleDashing() {
+        if (shouldDash)
+            StartCoroutine(Dash());
+    }
+
     private void HandleSwinging() {
         if (shouldSwing)
             Animator.SetTrigger("SwingAttack");
+    }
+
+    private void HandleSwaying() {
+
     }
     
     private void ApplyFinalMovements() {
@@ -336,5 +370,15 @@ public class PlayerMovement : MonoBehaviour
         isSprinting = true;
         isBoosting = false;
         duringBoost = false;
+    }
+
+    private IEnumerator Dash() {
+        float startTime = Time.time;
+
+        while (Time.time < startTime + dashTime) {
+            CharacterController.Move(moveDirection * dashSpeed * Time.deltaTime);
+            yield return null;
+        }
+
     }
 }
