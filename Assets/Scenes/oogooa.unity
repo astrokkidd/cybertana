@@ -436,7 +436,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh39142
+  m_Name: pb_Mesh28748
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -1575,7 +1575,7 @@ MonoBehaviour:
   airSpeed: 8.68
   airFriction: 0
   jumpsCompleted: 1
-  dashSpeed: 10
+  dashSpeed: 4
   dashTime: 0.1
   jumpFX1: {fileID: 1624653727}
   jumpFX2: {fileID: 1624653726}
@@ -1988,7 +1988,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 8ecb34b5484b0f3468ec8da8e6787fed, type: 2}
+  - {fileID: 2100000, guid: d161ab8d135eaa940a1554f8ecae8986, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
